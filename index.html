@@ -191,6 +191,18 @@
             font-size: 14px;
         }
         
+        /* Estilo dos rótulos dos pontos */
+        .lote-label {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            font-weight: bold;
+            font-size: 11px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+        
         @media (max-width: 768px) {
             .logo-overlay {
                 padding: 8px 12px;
@@ -202,6 +214,10 @@
             
             .logo-overlay h3 {
                 font-size: 14px;
+            }
+            
+            .lote-label {
+                font-size: 10px;
             }
         }
     </style>
@@ -323,19 +339,31 @@
         // Personalizar os popups dos pontos (rótulos)
         rotulosLayer.on('ready', function() {
             rotulosLayer.eachLayer(function(layer) {
-                // Estilizar marcadores como pontos roxos
+                // Estilizar marcadores como pontos roxos menores
                 if (layer.setIcon) {
                     const purpleIcon = L.icon({
-                        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxNSIgY3k9IjE1IiByPSIxMCIgZmlsbD0iIzhBMkJFMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+',
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 10],
-                        popupAnchor: [0, -10]
+                        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNiIgZmlsbD0iIzhBMkJFMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=',
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6],
+                        popupAnchor: [0, -8]
                     });
                     layer.setIcon(purpleIcon);
                 }
                 
                 if (layer.feature && layer.feature.properties) {
                     const props = layer.feature.properties;
+                    
+                    // Adicionar rótulo permanente com o número
+                    if (props.name) {
+                        layer.bindTooltip(props.name, {
+                            permanent: true,
+                            direction: 'right',
+                            className: 'lote-label',
+                            offset: [8, 0]
+                        });
+                    }
+                    
+                    // Popup com informações detalhadas
                     let popupContent = '<div style="font-weight: bold; font-size: 16px; color: #8A2BE2; margin-bottom: 8px;">';
                     
                     if (props.name) {
