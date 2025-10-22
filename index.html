@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotes Belém - Portas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        .header {
+            background-color: #4285f4;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .map-container {
+            width: 100%;
+            height: calc(100vh - 80px);
+            position: relative;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .instructions {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .header p {
+                font-size: 12px;
+            }
+            
+            .instructions {
+                font-size: 12px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏘️ LOTES BELÉM - PORTAS</h1>
+        <p>Base de dados de números de portas dos lotes</p>
+    </div>
+    
+    <div class="instructions">
+        <strong>💡 Dica:</strong> Use os dedos para dar zoom e arrastar o mapa. Clique nos ícones roxos para ver os números dos lotes.
+    </div>
+    
+    <div class="map-container">
+        <iframe 
+            src="https://www.google.com/maps/d/embed?mid=1ZF1dkdBtsrq9kQGNwd9LAVGksEsVozc&ll=-1.4477862610284256,-48.488093168886394&z=20"
+            allowfullscreen
+            loading="lazy">
+        </iframe>
+    </div>
+</body>
+</html>
