@@ -12,32 +12,76 @@
         }
         
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
         }
         
         .header {
-            background-color: #4285f4;
-            color: white;
-            padding: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .header-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            height: 60px;
+            width: auto;
         }
         
         .header h1 {
-            font-size: 22px;
-            margin-bottom: 5px;
+            font-size: 32px;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         
         .header p {
-            font-size: 14px;
-            opacity: 0.9;
+            font-size: 16px;
+            color: #666;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        
+        .map-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .map-container {
             width: 100%;
-            height: calc(100vh - 80px);
-            position: relative;
+            height: calc(100vh - 280px);
+            min-height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
         
         iframe {
@@ -47,46 +91,144 @@
         }
         
         .instructions {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 12px;
-            margin: 10px;
-            border-radius: 4px;
-            font-size: 14px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            font-size: 15px;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        @media (max-width: 600px) {
+        .instructions strong {
+            font-size: 18px;
+        }
+        
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .info-card .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .info-card h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .info-card p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+                border-radius: 15px;
+            }
+            
+            .logo {
+                height: 50px;
+            }
+            
             .header h1 {
-                font-size: 18px;
+                font-size: 24px;
             }
             
             .header p {
-                font-size: 12px;
+                font-size: 14px;
+            }
+            
+            .map-wrapper {
+                padding: 15px;
+                border-radius: 15px;
+            }
+            
+            .map-container {
+                height: calc(100vh - 350px);
+                min-height: 400px;
             }
             
             .instructions {
-                font-size: 12px;
-                padding: 8px;
+                font-size: 13px;
+                padding: 12px 15px;
+            }
+            
+            .info-cards {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🏘️ LOTES BELÉM - PORTAS</h1>
-        <p>Base de dados de números de portas dos lotes</p>
-    </div>
-    
-    <div class="instructions">
-        <strong>💡 Dica:</strong> Use os dedos para dar zoom e arrastar o mapa. Clique nos ícones roxos para ver os números dos lotes.
-    </div>
-    
-    <div class="map-container">
-        <iframe 
-            src="https://www.google.com/maps/d/embed?mid=1ZF1dkdBtsrq9kQGNwd9LAVGksEsVozc&ll=-1.4477862610284256,-48.488093168886394&z=20"
-            allowfullscreen
-            loading="lazy">
-        </iframe>
+    <div class="container">
+        <div class="header">
+            <div class="header-logo">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYh50g8koFRocLMKmtZdzb6aIRz1DBxS9R9A&s" alt="Águas do Pará" class="logo">
+                <h1>🏘️ LOTES BELÉM - PORTAS</h1>
+            </div>
+            <p>Base de dados de números de portas dos lotes de Belém</p>
+        </div>
+        
+        <div class="info-cards">
+            <div class="info-card">
+                <div class="icon">📍</div>
+                <h3>2000+ Lotes</h3>
+                <p>Cadastrados no sistema</p>
+            </div>
+            <div class="info-card">
+                <div class="icon">🔍</div>
+                <h3>Busca Fácil</h3>
+                <p>Clique nos ícones para detalhes</p>
+            </div>
+            <div class="info-card">
+                <div class="icon">📱</div>
+                <h3>100% Responsivo</h3>
+                <p>Funciona em qualquer dispositivo</p>
+            </div>
+        </div>
+        
+        <div class="map-wrapper">
+            <div class="instructions">
+                <strong>💡</strong>
+                <span>Use os dedos para dar zoom e arrastar o mapa. Clique nos ícones roxos para ver os números dos lotes.</span>
+            </div>
+            
+            <div class="map-container">
+                <iframe 
+                    src="https://www.google.com/maps/d/embed?mid=1ZF1dkdBtsrq9kQGNwd9LAVGksEsVozc&ll=-1.4477862610284256,-48.488093168886394&z=20"
+                    allowfullscreen
+                    loading="lazy">
+                </iframe>
+            </div>
+        </div>
     </div>
 </body>
 </html>
