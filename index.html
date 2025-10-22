@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotes Belém - Portas</title>
+    <title>Lotes Belém</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
@@ -13,7 +13,7 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             overflow: hidden;
         }
         
@@ -22,480 +22,245 @@
             height: 100vh;
         }
         
-        .logo-overlay {
+        .logo {
             position: absolute;
             top: 10px;
-            left: 10px;
+            left: 50px;
             background: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
             z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         
-        .logo-overlay img {
-            height: 40px;
-            width: auto;
+        .logo img {
+            height: 35px;
         }
         
-        .logo-overlay h3 {
-            font-size: 16px;
-            color: #333;
-            margin: 0;
-        }
-        
-        .location-button {
+        .location-btn {
             position: absolute;
             bottom: 120px;
             right: 10px;
             width: 40px;
             height: 40px;
             background: white;
-            border: 2px solid rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(0,0,0,0.2);
             border-radius: 4px;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             z-index: 1000;
-            transition: all 0.2s ease;
         }
         
-        .location-button:hover {
-            background: #f4f4f4;
-        }
-        
-        .location-button:active {
+        .location-btn:active {
             transform: scale(0.95);
         }
         
-        .location-button.active {
+        .location-btn.active {
             background: #4285f4;
             border-color: #4285f4;
         }
         
-        .location-button svg {
+        .location-btn svg {
             width: 20px;
             height: 20px;
             fill: #666;
         }
         
-        .location-button.active svg {
+        .location-btn.active svg {
             fill: white;
         }
         
-        .loading-overlay {
+        .loading {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             z-index: 2000;
-            gap: 15px;
+            text-align: center;
         }
         
-        .loading-overlay.hidden {
+        .loading.hide {
             display: none;
         }
         
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4285f4;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4285f4;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 10px;
         }
         
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
         
-        .loading-text {
-            font-size: 16px;
-            color: #666;
-            font-weight: 500;
-        }
-        
-        .loading-progress {
-            font-size: 14px;
-            color: #999;
-        }
-        
-        .error-message {
-            position: absolute;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(244, 67, 54, 0.95);
+        .lote-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            font-weight: bold;
+            font-size: 9px;
             color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            z-index: 1001;
-            display: none;
-            max-width: 90%;
-            text-align: center;
+            text-shadow: 0 0 3px #000, 0 0 3px #000;
+            white-space: nowrap;
         }
         
-        .error-message.show {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-        
-        /* Estilo do marcador de localização pulsante */
-        .user-location-marker {
-            width: 20px;
-            height: 20px;
-            background-color: #4285f4;
-            border: 3px solid white;
+        .user-marker {
+            width: 16px;
+            height: 16px;
+            background: #4285f4;
+            border: 2px solid white;
             border-radius: 50%;
-            box-shadow: 0 0 0 rgba(66, 133, 244, 0.4);
+            box-shadow: 0 0 0 rgba(66,133,244,0.4);
             animation: pulse 2s infinite;
         }
         
         @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
-            }
-        }
-        
-        /* Personalizar popup */
-        .leaflet-popup-content-wrapper {
-            border-radius: 8px;
-        }
-        
-        .leaflet-popup-content {
-            margin: 10px 15px;
-            font-size: 14px;
-        }
-        
-        /* Estilo dos rótulos dos pontos */
-        .lote-label {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            font-weight: bold;
-            font-size: 11px;
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8);
-            white-space: nowrap;
+            0%, 100% { box-shadow: 0 0 0 0 rgba(66,133,244,0.7); }
+            50% { box-shadow: 0 0 0 8px rgba(66,133,244,0); }
         }
         
         @media (max-width: 768px) {
-            .logo-overlay {
-                padding: 8px 12px;
-            }
-            
-            .logo-overlay img {
-                height: 35px;
-            }
-            
-            .logo-overlay h3 {
-                font-size: 14px;
-            }
-            
-            .lote-label {
-                font-size: 10px;
-            }
+            .logo { left: 10px; padding: 6px 10px; }
+            .logo img { height: 30px; }
+            .lote-label { font-size: 8px; }
         }
     </style>
 </head>
 <body>
-    <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading" id="load">
         <div class="spinner"></div>
-        <div class="loading-text">Carregando mapa...</div>
-        <div class="loading-progress" id="loadingProgress">Preparando...</div>
+        <div id="txt">Carregando...</div>
     </div>
     
-    <div class="logo-overlay">
+    <div class="logo">
         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYh50g8koFRocLMKmtZdzb6aIRz1DBxS9R9A&s" alt="Águas do Pará">
-        <h3>Lotes Belém</h3>
     </div>
     
     <div id="map"></div>
     
-    <button class="location-button" id="locationBtn" title="Minha localização">
+    <button class="location-btn" id="locBtn">
         <svg viewBox="0 0 24 24">
             <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
         </svg>
     </button>
     
-    <div class="error-message" id="errorMsg"></div>
-    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-omnivore/0.3.4/leaflet-omnivore.min.js"></script>
     <script>
-        // Inicializar o mapa centrado em Belém
-        const map = L.map('map').setView([-1.4477862610284256, -48.488093168886394], 17);
+        const map = L.map('map', { preferCanvas: true }).setView([-1.4478, -48.4881], 17);
         
-        // Adicionar camada de satélite (ArcGIS)
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-            maxZoom: 19
+            maxZoom: 20
         }).addTo(map);
         
-        // Variáveis para controle de localização
-        let userLocationMarker = null;
-        let userLocationCircle = null;
-        let watchId = null;
-        const locationBtn = document.getElementById('locationBtn');
-        const errorMsg = document.getElementById('errorMsg');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const loadingProgress = document.getElementById('loadingProgress');
+        const load = document.getElementById('load');
+        const txt = document.getElementById('txt');
+        const locBtn = document.getElementById('locBtn');
         
-        // Função para mostrar erro
-        function showError(message) {
-            errorMsg.textContent = message;
-            errorMsg.classList.add('show');
-            setTimeout(() => {
-                errorMsg.classList.remove('show');
-            }, 4000);
-        }
+        let loaded = 0;
+        let userMarker, userCircle, watchId;
         
-        // Contador de camadas carregadas
-        let layersLoaded = 0;
-        const totalLayers = 2;
-        
-        function updateProgress(message) {
-            if (loadingProgress) {
-                loadingProgress.textContent = message;
+        function done() {
+            if (++loaded === 2) {
+                setTimeout(() => load.classList.add('hide'), 300);
             }
         }
         
-        function checkAllLayersLoaded() {
-            layersLoaded++;
-            if (layersLoaded === totalLayers) {
-                updateProgress('Finalizando...');
-                setTimeout(() => {
-                    loadingOverlay.classList.add('hidden');
-                }, 500);
-            }
-        }
-        
-        // Carregar KML dos PERÍMETROS (linhas dos lotes) - Carrega primeiro por ser menor processamento
-        updateProgress('Carregando perímetros...');
-        const perimetrosLayer = omnivore.kml('KML-REDUTO-LOTES.kml')
+        // Perímetros
+        txt.textContent = 'Carregando perímetros...';
+        const p = omnivore.kml('KML-REDUTO-LOTES.kml')
             .on('ready', function() {
-                updateProgress('Perímetros carregados. Carregando pontos...');
-                
-                // Estilizar de forma mais eficiente
-                perimetrosLayer.setStyle({
-                    color: '#FFD700',
-                    weight: 2,
-                    opacity: 0.8,
-                    fillColor: '#FFFF00',
-                    fillOpacity: 0.1
-                });
-                
-                checkAllLayersLoaded();
-                map.fitBounds(perimetrosLayer.getBounds());
-            })
-            .on('error', function() {
-                loadingOverlay.classList.add('hidden');
-                showError('Erro ao carregar os perímetros. Verifique se KML-REDUTO-LOTES.kml está no repositório.');
+                p.setStyle({ color: '#FFD700', weight: 1.5, opacity: 0.7, fillOpacity: 0.05 });
+                map.fitBounds(p.getBounds());
+                txt.textContent = 'Carregando pontos...';
+                done();
             })
             .addTo(map);
         
-        // Carregar KML dos RÓTULOS (pontos com números)
-        const rotulosLayer = omnivore.kml('KML-REDUTO-ROTULOS.kml')
+        // Pontos
+        const r = omnivore.kml('KML-REDUTO-ROTULOS.kml')
             .on('ready', function() {
-                updateProgress('Processando pontos...');
+                const icon = L.icon({
+                    iconUrl: 'data:image/svg+xml,%3Csvg width="10" height="10" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="5" cy="5" r="4" fill="%238A2BE2" stroke="white" stroke-width="1"/%3E%3C/svg%3E',
+                    iconSize: [10, 10],
+                    iconAnchor: [5, 5]
+                });
                 
-                // Processar pontos de forma mais eficiente
-                rotulosLayer.eachLayer(function(layer) {
-                    // Estilizar marcadores como pontos roxos menores
-                    if (layer.setIcon) {
-                        const purpleIcon = L.icon({
-                            iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNiIgZmlsbD0iIzhBMkJFMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=',
-                            iconSize: [12, 12],
-                            iconAnchor: [6, 6],
-                            popupAnchor: [0, -8]
-                        });
-                        layer.setIcon(purpleIcon);
-                    }
+                r.eachLayer(l => {
+                    if (l.setIcon) l.setIcon(icon);
                     
-                    if (layer.feature && layer.feature.properties) {
-                        const props = layer.feature.properties;
+                    const props = l.feature?.properties;
+                    if (props?.name) {
+                        const tt = L.tooltip({
+                            permanent: true,
+                            direction: 'right',
+                            className: 'lote-label',
+                            offset: [6, 0]
+                        }).setContent(props.name);
                         
-                        // Adicionar rótulo que só aparece com zoom >= 18
-                        if (props.name) {
-                            const tooltip = L.tooltip({
-                                permanent: true,
-                                direction: 'right',
-                                className: 'lote-label',
-                                offset: [8, 0]
-                            }).setContent(props.name);
-                            
-                            layer.bindTooltip(tooltip);
-                            
-                            // Esconder rótulo inicialmente se zoom < 18
-                            if (map.getZoom() < 18) {
-                                layer.closeTooltip();
-                            }
-                        }
+                        l.bindTooltip(tt);
+                        if (map.getZoom() < 18) l.closeTooltip();
                         
-                        // Popup com informações detalhadas
-                        let popupContent = '<div style="font-weight: bold; font-size: 16px; color: #8A2BE2; margin-bottom: 8px;">';
-                        
-                        if (props.name) {
-                            popupContent += `Nº ${props.name}`;
-                        }
-                        
-                        popupContent += '</div>';
-                        
-                        // Adicionar outras propriedades
-                        for (let key in props) {
-                            if (key !== 'name' && key !== 'description' && props[key]) {
-                                popupContent += `<div style="margin-top: 4px;"><strong>${key}:</strong> ${props[key]}</div>`;
-                            }
-                        }
-                        
-                        if (props.description) {
-                            popupContent += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">${props.description}</div>`;
-                        }
-                        
-                        layer.bindPopup(popupContent);
+                        l.bindPopup(`<b>Nº ${props.name}</b>`);
                     }
                 });
                 
-                checkAllLayersLoaded();
-            })
-            .on('error', function() {
-                loadingOverlay.classList.add('hidden');
-                showError('Erro ao carregar os rótulos. Verifique se KML-REDUTO-ROTULOS.kml está no repositório.');
+                done();
             })
             .addTo(map);
         
-        // Controlar visibilidade dos rótulos baseado no zoom
-        map.on('zoomend', function() {
-            const currentZoom = map.getZoom();
-            
-            rotulosLayer.eachLayer(function(layer) {
-                if (layer.getTooltip()) {
-                    if (currentZoom >= 18) {
-                        layer.openTooltip();
-                    } else {
-                        layer.closeTooltip();
-                    }
+        // Zoom control
+        map.on('zoomend', () => {
+            const z = map.getZoom();
+            r.eachLayer(l => {
+                if (l.getTooltip()) {
+                    z >= 18 ? l.openTooltip() : l.closeTooltip();
                 }
             });
         });
         
-        // Função para atualizar localização do usuário
-        function updateUserLocation(latitude, longitude, accuracy) {
-            const userIcon = L.divIcon({
-                className: 'user-location-marker',
-                iconSize: [20, 20]
-            });
+        // Location
+        locBtn.onclick = () => {
+            if (!navigator.geolocation) return;
             
-            if (userLocationMarker) {
-                userLocationMarker.setLatLng([latitude, longitude]);
-                userLocationCircle.setLatLng([latitude, longitude]);
-                userLocationCircle.setRadius(accuracy);
-            } else {
-                userLocationMarker = L.marker([latitude, longitude], {
-                    icon: userIcon,
-                    zIndexOffset: 1000
-                }).addTo(map);
-                
-                userLocationCircle = L.circle([latitude, longitude], {
-                    radius: accuracy,
-                    color: '#4285f4',
-                    fillColor: '#4285f4',
-                    fillOpacity: 0.15,
-                    weight: 1
-                }).addTo(map);
-                
-                map.setView([latitude, longitude], 17);
-            }
-        }
-        
-        // Botão de localização
-        locationBtn.addEventListener('click', () => {
-            if (!navigator.geolocation) {
-                showError('Geolocalização não suportada pelo navegador');
+            if (locBtn.classList.contains('active')) {
+                if (watchId) navigator.geolocation.clearWatch(watchId);
+                if (userMarker) {
+                    map.removeLayer(userMarker);
+                    map.removeLayer(userCircle);
+                }
+                locBtn.classList.remove('active');
                 return;
             }
-            
-            if (locationBtn.classList.contains('active')) {
-                // Desativar rastreamento
-                if (watchId !== null) {
-                    navigator.geolocation.clearWatch(watchId);
-                    watchId = null;
-                }
-                
-                if (userLocationMarker) {
-                    map.removeLayer(userLocationMarker);
-                    map.removeLayer(userLocationCircle);
-                    userLocationMarker = null;
-                    userLocationCircle = null;
-                }
-                
-                locationBtn.classList.remove('active');
-                return;
-            }
-            
-            // Ativar rastreamento
-            const options = {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            };
             
             watchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    const { latitude, longitude, accuracy } = position.coords;
-                    updateUserLocation(latitude, longitude, accuracy);
-                    locationBtn.classList.add('active');
-                },
-                (error) => {
-                    let errorMessage = 'Erro ao obter localização';
+                pos => {
+                    const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+                    const icon = L.divIcon({ className: 'user-marker', iconSize: [16, 16] });
                     
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMessage = 'Permissão de localização negada. Ative nas configurações do navegador.';
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMessage = 'Localização indisponível';
-                            break;
-                        case error.TIMEOUT:
-                            errorMessage = 'Tempo esgotado ao buscar localização';
-                            break;
+                    if (userMarker) {
+                        userMarker.setLatLng([lat, lng]);
+                        userCircle.setLatLng([lat, lng]).setRadius(accuracy);
+                    } else {
+                        userMarker = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(map);
+                        userCircle = L.circle([lat, lng], { radius: accuracy, color: '#4285f4', fillOpacity: 0.1, weight: 1 }).addTo(map);
+                        map.setView([lat, lng], 18);
                     }
                     
-                    showError(errorMessage);
+                    locBtn.classList.add('active');
                 },
-                options
+                () => {},
+                { enableHighAccuracy: true, maximumAge: 0 }
             );
-        });
+        };
     </script>
 </body>
 </html>
