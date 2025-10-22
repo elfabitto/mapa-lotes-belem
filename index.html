@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lotes Belém - Portas</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
             margin: 0;
@@ -21,6 +22,31 @@
             height: 100vh;
         }
         
+        .logo-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-overlay img {
+            height: 40px;
+            width: auto;
+        }
+        
+        .logo-overlay h3 {
+            font-size: 16px;
+            color: #333;
+            margin: 0;
+        }
+        
         .location-button {
             position: absolute;
             bottom: 120px;
@@ -28,20 +54,19 @@
             width: 40px;
             height: 40px;
             background: white;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
         
         .location-button:hover {
-            background: #f0f0f0;
-            transform: scale(1.05);
+            background: #f4f4f4;
         }
         
         .location-button:active {
@@ -54,8 +79,8 @@
         }
         
         .location-button svg {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             fill: #666;
         }
         
@@ -63,22 +88,32 @@
             fill: white;
         }
         
-        .loading-spinner {
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            gap: 15px;
+        }
+        
+        .loading-overlay.hidden {
             display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4285f4;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4285f4;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-        }
-        
-        .location-button.loading .loading-spinner {
-            display: block;
-        }
-        
-        .location-button.loading svg {
-            display: none;
         }
         
         @keyframes spin {
@@ -86,16 +121,21 @@
             100% { transform: rotate(360deg); }
         }
         
+        .loading-text {
+            font-size: 16px;
+            color: #666;
+        }
+        
         .error-message {
             position: absolute;
-            top: 10px;
+            top: 70px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(244, 67, 54, 0.95);
             color: white;
             padding: 12px 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             z-index: 1001;
             display: none;
             max-width: 90%;
@@ -117,46 +157,239 @@
                 transform: translateX(-50%) translateY(0);
             }
         }
+        
+        /* Estilo do marcador de localização pulsante */
+        .user-location-marker {
+            width: 20px;
+            height: 20px;
+            background-color: #4285f4;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 0 rgba(66, 133, 244, 0.4);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+            }
+        }
+        
+        /* Personalizar popup */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+        
+        .leaflet-popup-content {
+            margin: 10px 15px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .logo-overlay {
+                padding: 8px 12px;
+            }
+            
+            .logo-overlay img {
+                height: 35px;
+            }
+            
+            .logo-overlay h3 {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
-    <iframe 
-        id="map"
-        src="https://www.google.com/maps/d/embed?mid=1ZF1dkdBtsrq9kQGNwd9LAVGksEsVozc&ll=-1.4477862610284256,-48.488093168886394&z=20"
-        allowfullscreen
-        loading="lazy">
-    </iframe>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Carregando lotes...</div>
+    </div>
+    
+    <div class="logo-overlay">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYh50g8koFRocLMKmtZdzb6aIRz1DBxS9R9A&s" alt="Águas do Pará">
+        <h3>Lotes Belém</h3>
+    </div>
+    
+    <div id="map"></div>
     
     <button class="location-button" id="locationBtn" title="Minha localização">
         <svg viewBox="0 0 24 24">
             <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
         </svg>
-        <div class="loading-spinner"></div>
     </button>
     
     <div class="error-message" id="errorMsg"></div>
     
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-omnivore/0.3.4/leaflet-omnivore.min.js"></script>
     <script>
+        // Inicializar o mapa centrado em Belém
+        const map = L.map('map').setView([-1.4477862610284256, -48.488093168886394], 17);
+        
+        // Adicionar camada de tiles (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Variáveis para controle de localização
+        let userLocationMarker = null;
+        let userLocationCircle = null;
+        let watchId = null;
         const locationBtn = document.getElementById('locationBtn');
         const errorMsg = document.getElementById('errorMsg');
-        const mapFrame = document.getElementById('map');
+        const loadingOverlay = document.getElementById('loadingOverlay');
         
-        let watchId = null;
-        
+        // Função para mostrar erro
         function showError(message) {
             errorMsg.textContent = message;
             errorMsg.classList.add('show');
             setTimeout(() => {
                 errorMsg.classList.remove('show');
-            }, 3000);
+            }, 4000);
         }
         
-        function updateMapLocation(latitude, longitude) {
-            const baseUrl = 'https://www.google.com/maps/d/embed?mid=1ZF1dkdBtsrq9kQGNwd9LAVGksEsVozc';
-            const newUrl = `${baseUrl}&ll=${latitude},${longitude}&z=18`;
-            mapFrame.src = newUrl;
+        // Contador de camadas carregadas
+        let layersLoaded = 0;
+        const totalLayers = 2;
+        
+        function checkAllLayersLoaded() {
+            layersLoaded++;
+            if (layersLoaded === totalLayers) {
+                loadingOverlay.classList.add('hidden');
+            }
         }
         
+        // Carregar KML dos PERÍMETROS (linhas dos lotes)
+        const perimetrosLayer = omnivore.kml('KML-REDUTO-LOTES.kml')
+            .on('ready', function() {
+                checkAllLayersLoaded();
+                // Ajustar o zoom para mostrar todos os perímetros
+                map.fitBounds(perimetrosLayer.getBounds());
+            })
+            .on('error', function() {
+                loadingOverlay.classList.add('hidden');
+                showError('Erro ao carregar os perímetros. Verifique se KML-REDUTO-LOTES.kml está no repositório.');
+            })
+            .addTo(map);
+        
+        // Estilizar os perímetros (linhas amarelas)
+        perimetrosLayer.on('ready', function() {
+            perimetrosLayer.eachLayer(function(layer) {
+                if (layer.setStyle) {
+                    layer.setStyle({
+                        color: '#FFD700',
+                        weight: 2,
+                        opacity: 0.8,
+                        fillColor: '#FFFF00',
+                        fillOpacity: 0.1
+                    });
+                }
+                
+                // Adicionar popup se houver propriedades
+                if (layer.feature && layer.feature.properties) {
+                    const props = layer.feature.properties;
+                    let popupContent = '<div style="font-weight: bold; color: #333;">Perímetro do Lote</div>';
+                    
+                    for (let key in props) {
+                        if (props[key] && key !== 'description') {
+                            popupContent += `<div><strong>${key}:</strong> ${props[key]}</div>`;
+                        }
+                    }
+                    
+                    layer.bindPopup(popupContent);
+                }
+            });
+        });
+        
+        // Carregar KML dos RÓTULOS (pontos com números)
+        const rotulosLayer = omnivore.kml('KML-REDUTO-ROTULOS.kml')
+            .on('ready', function() {
+                checkAllLayersLoaded();
+            })
+            .on('error', function() {
+                loadingOverlay.classList.add('hidden');
+                showError('Erro ao carregar os rótulos. Verifique se KML-REDUTO-ROTULOS.kml está no repositório.');
+            })
+            .addTo(map);
+        
+        // Personalizar os popups dos pontos (rótulos)
+        rotulosLayer.on('ready', function() {
+            rotulosLayer.eachLayer(function(layer) {
+                // Estilizar marcadores como pontos roxos
+                if (layer.setIcon) {
+                    const purpleIcon = L.icon({
+                        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxNSIgY3k9IjE1IiByPSIxMCIgZmlsbD0iIzhBMkJFMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10],
+                        popupAnchor: [0, -10]
+                    });
+                    layer.setIcon(purpleIcon);
+                }
+                
+                if (layer.feature && layer.feature.properties) {
+                    const props = layer.feature.properties;
+                    let popupContent = '<div style="font-weight: bold; font-size: 16px; color: #8A2BE2; margin-bottom: 8px;">';
+                    
+                    if (props.name) {
+                        popupContent += `Nº ${props.name}`;
+                    }
+                    
+                    popupContent += '</div>';
+                    
+                    // Adicionar outras propriedades
+                    for (let key in props) {
+                        if (key !== 'name' && key !== 'description' && props[key]) {
+                            popupContent += `<div style="margin-top: 4px;"><strong>${key}:</strong> ${props[key]}</div>`;
+                        }
+                    }
+                    
+                    if (props.description) {
+                        popupContent += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">${props.description}</div>`;
+                    }
+                    
+                    layer.bindPopup(popupContent);
+                }
+            });
+        });
+        
+        // Função para atualizar localização do usuário
+        function updateUserLocation(latitude, longitude, accuracy) {
+            const userIcon = L.divIcon({
+                className: 'user-location-marker',
+                iconSize: [20, 20]
+            });
+            
+            if (userLocationMarker) {
+                userLocationMarker.setLatLng([latitude, longitude]);
+                userLocationCircle.setLatLng([latitude, longitude]);
+                userLocationCircle.setRadius(accuracy);
+            } else {
+                userLocationMarker = L.marker([latitude, longitude], {
+                    icon: userIcon,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                userLocationCircle = L.circle([latitude, longitude], {
+                    radius: accuracy,
+                    color: '#4285f4',
+                    fillColor: '#4285f4',
+                    fillOpacity: 0.15,
+                    weight: 1
+                }).addTo(map);
+                
+                map.setView([latitude, longitude], 17);
+            }
+        }
+        
+        // Botão de localização
         locationBtn.addEventListener('click', () => {
             if (!navigator.geolocation) {
                 showError('Geolocalização não suportada pelo navegador');
@@ -169,13 +402,19 @@
                     navigator.geolocation.clearWatch(watchId);
                     watchId = null;
                 }
+                
+                if (userLocationMarker) {
+                    map.removeLayer(userLocationMarker);
+                    map.removeLayer(userLocationCircle);
+                    userLocationMarker = null;
+                    userLocationCircle = null;
+                }
+                
                 locationBtn.classList.remove('active');
                 return;
             }
             
             // Ativar rastreamento
-            locationBtn.classList.add('loading');
-            
             const options = {
                 enableHighAccuracy: true,
                 timeout: 10000,
@@ -184,18 +423,16 @@
             
             watchId = navigator.geolocation.watchPosition(
                 (position) => {
-                    const { latitude, longitude } = position.coords;
-                    updateMapLocation(latitude, longitude);
-                    locationBtn.classList.remove('loading');
+                    const { latitude, longitude, accuracy } = position.coords;
+                    updateUserLocation(latitude, longitude, accuracy);
                     locationBtn.classList.add('active');
                 },
                 (error) => {
-                    locationBtn.classList.remove('loading');
                     let errorMessage = 'Erro ao obter localização';
                     
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
-                            errorMessage = 'Permissão de localização negada';
+                            errorMessage = 'Permissão de localização negada. Ative nas configurações do navegador.';
                             break;
                         case error.POSITION_UNAVAILABLE:
                             errorMessage = 'Localização indisponível';
