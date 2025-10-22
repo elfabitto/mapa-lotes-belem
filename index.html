@@ -94,7 +94,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -124,6 +124,12 @@
         .loading-text {
             font-size: 16px;
             color: #666;
+            font-weight: 500;
+        }
+        
+        .loading-progress {
+            font-size: 14px;
+            color: #999;
         }
         
         .error-message {
@@ -225,7 +231,8 @@
 <body>
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
-        <div class="loading-text">Carregando lotes...</div>
+        <div class="loading-text">Carregando mapa...</div>
+        <div class="loading-progress" id="loadingProgress">Preparando...</div>
     </div>
     
     <div class="logo-overlay">
@@ -262,6 +269,7 @@
         const locationBtn = document.getElementById('locationBtn');
         const errorMsg = document.getElementById('errorMsg');
         const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingProgress = document.getElementById('loadingProgress');
         
         // Função para mostrar erro
         function showError(message) {
@@ -276,18 +284,38 @@
         let layersLoaded = 0;
         const totalLayers = 2;
         
-        function checkAllLayersLoaded() {
-            layersLoaded++;
-            if (layersLoaded === totalLayers) {
-                loadingOverlay.classList.add('hidden');
+        function updateProgress(message) {
+            if (loadingProgress) {
+                loadingProgress.textContent = message;
             }
         }
         
-        // Carregar KML dos PERÍMETROS (linhas dos lotes)
+        function checkAllLayersLoaded() {
+            layersLoaded++;
+            if (layersLoaded === totalLayers) {
+                updateProgress('Finalizando...');
+                setTimeout(() => {
+                    loadingOverlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+        
+        // Carregar KML dos PERÍMETROS (linhas dos lotes) - Carrega primeiro por ser menor processamento
+        updateProgress('Carregando perímetros...');
         const perimetrosLayer = omnivore.kml('KML-REDUTO-LOTES.kml')
             .on('ready', function() {
+                updateProgress('Perímetros carregados. Carregando pontos...');
+                
+                // Estilizar de forma mais eficiente
+                perimetrosLayer.setStyle({
+                    color: '#FFD700',
+                    weight: 2,
+                    opacity: 0.8,
+                    fillColor: '#FFFF00',
+                    fillOpacity: 0.1
+                });
+                
                 checkAllLayersLoaded();
-                // Ajustar o zoom para mostrar todos os perímetros
                 map.fitBounds(perimetrosLayer.getBounds());
             })
             .on('error', function() {
@@ -296,38 +324,68 @@
             })
             .addTo(map);
         
-        // Estilizar os perímetros (linhas amarelas)
-        perimetrosLayer.on('ready', function() {
-            perimetrosLayer.eachLayer(function(layer) {
-                if (layer.setStyle) {
-                    layer.setStyle({
-                        color: '#FFD700',
-                        weight: 2,
-                        opacity: 0.8,
-                        fillColor: '#FFFF00',
-                        fillOpacity: 0.1
-                    });
-                }
-                
-                // Adicionar popup se houver propriedades
-                if (layer.feature && layer.feature.properties) {
-                    const props = layer.feature.properties;
-                    let popupContent = '<div style="font-weight: bold; color: #333;">Perímetro do Lote</div>';
-                    
-                    for (let key in props) {
-                        if (props[key] && key !== 'description') {
-                            popupContent += `<div><strong>${key}:</strong> ${props[key]}</div>`;
-                        }
-                    }
-                    
-                    layer.bindPopup(popupContent);
-                }
-            });
-        });
-        
         // Carregar KML dos RÓTULOS (pontos com números)
         const rotulosLayer = omnivore.kml('KML-REDUTO-ROTULOS.kml')
             .on('ready', function() {
+                updateProgress('Processando pontos...');
+                
+                // Processar pontos de forma mais eficiente
+                rotulosLayer.eachLayer(function(layer) {
+                    // Estilizar marcadores como pontos roxos menores
+                    if (layer.setIcon) {
+                        const purpleIcon = L.icon({
+                            iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNiIgZmlsbD0iIzhBMkJFMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=',
+                            iconSize: [12, 12],
+                            iconAnchor: [6, 6],
+                            popupAnchor: [0, -8]
+                        });
+                        layer.setIcon(purpleIcon);
+                    }
+                    
+                    if (layer.feature && layer.feature.properties) {
+                        const props = layer.feature.properties;
+                        
+                        // Adicionar rótulo que só aparece com zoom >= 18
+                        if (props.name) {
+                            const tooltip = L.tooltip({
+                                permanent: true,
+                                direction: 'right',
+                                className: 'lote-label',
+                                offset: [8, 0]
+                            }).setContent(props.name);
+                            
+                            layer.bindTooltip(tooltip);
+                            
+                            // Esconder rótulo inicialmente se zoom < 18
+                            if (map.getZoom() < 18) {
+                                layer.closeTooltip();
+                            }
+                        }
+                        
+                        // Popup com informações detalhadas
+                        let popupContent = '<div style="font-weight: bold; font-size: 16px; color: #8A2BE2; margin-bottom: 8px;">';
+                        
+                        if (props.name) {
+                            popupContent += `Nº ${props.name}`;
+                        }
+                        
+                        popupContent += '</div>';
+                        
+                        // Adicionar outras propriedades
+                        for (let key in props) {
+                            if (key !== 'name' && key !== 'description' && props[key]) {
+                                popupContent += `<div style="margin-top: 4px;"><strong>${key}:</strong> ${props[key]}</div>`;
+                            }
+                        }
+                        
+                        if (props.description) {
+                            popupContent += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">${props.description}</div>`;
+                        }
+                        
+                        layer.bindPopup(popupContent);
+                    }
+                });
+                
                 checkAllLayersLoaded();
             })
             .on('error', function() {
@@ -336,54 +394,17 @@
             })
             .addTo(map);
         
-        // Personalizar os popups dos pontos (rótulos)
-        rotulosLayer.on('ready', function() {
+        // Controlar visibilidade dos rótulos baseado no zoom
+        map.on('zoomend', function() {
+            const currentZoom = map.getZoom();
+            
             rotulosLayer.eachLayer(function(layer) {
-                // Estilizar marcadores como pontos roxos menores
-                if (layer.setIcon) {
-                    const purpleIcon = L.icon({
-                        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNiIgZmlsbD0iIzhBMkJFMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=',
-                        iconSize: [12, 12],
-                        iconAnchor: [6, 6],
-                        popupAnchor: [0, -8]
-                    });
-                    layer.setIcon(purpleIcon);
-                }
-                
-                if (layer.feature && layer.feature.properties) {
-                    const props = layer.feature.properties;
-                    
-                    // Adicionar rótulo permanente com o número
-                    if (props.name) {
-                        layer.bindTooltip(props.name, {
-                            permanent: true,
-                            direction: 'right',
-                            className: 'lote-label',
-                            offset: [8, 0]
-                        });
+                if (layer.getTooltip()) {
+                    if (currentZoom >= 18) {
+                        layer.openTooltip();
+                    } else {
+                        layer.closeTooltip();
                     }
-                    
-                    // Popup com informações detalhadas
-                    let popupContent = '<div style="font-weight: bold; font-size: 16px; color: #8A2BE2; margin-bottom: 8px;">';
-                    
-                    if (props.name) {
-                        popupContent += `Nº ${props.name}`;
-                    }
-                    
-                    popupContent += '</div>';
-                    
-                    // Adicionar outras propriedades
-                    for (let key in props) {
-                        if (key !== 'name' && key !== 'description' && props[key]) {
-                            popupContent += `<div style="margin-top: 4px;"><strong>${key}:</strong> ${props[key]}</div>`;
-                        }
-                    }
-                    
-                    if (props.description) {
-                        popupContent += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">${props.description}</div>`;
-                    }
-                    
-                    layer.bindPopup(popupContent);
                 }
             });
         });
